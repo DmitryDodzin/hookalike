@@ -62,5 +62,10 @@ typings/
 # next.js build output
 .next
 
-# Build Result
-dist/
+jest.config.js
+
+# Source Files
+lib/**/*.ts
+!lib/**/*.d.ts
+
+

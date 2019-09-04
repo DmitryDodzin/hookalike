@@ -1,9 +1,11 @@
 {
   "name": "hooklike",
-  "version": "0.0.1",
-  "main": "index.js",
+  "version": "0.0.2",
+  "main": "dist/index.js",
+  "types": "dist/index.d.js",
   "scripts": {
     "build": "tsc",
+    "prepublish": "yarn build",
     "test": "jest"
   },
   "repository": {
@@ -26,7 +28,9 @@
       "email": "d.dodzin@gmail.com"
     }
   ],
-  "engines" : { "node" : ">=8.x.x" },
+  "engines": {
+    "node": ">=8.x.x"
+  },
   "devDependencies": {
     "@types/jest": "^24.0.18",
     "@types/node": "^12.7.3",
