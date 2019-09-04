@@ -1,0 +1,37 @@
+{
+  "name": "hooklike",
+  "version": "0.0.1",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DmitryDodzin/hooklike.git"
+  },
+  "keywords": [
+    "injection",
+    "di"
+  ],
+  "author": "Dmitry Dodzin",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/DmitryDodzin/hooklike/issues"
+  },
+  "homepage": "https://github.com/DmitryDodzin/hooklike#readme",
+  "maintainers": [
+    {
+      "name": "Dmitry Dodzin",
+      "email": "d.dodzin@gmail.com"
+    }
+  ],
+  "engines" : { "node" : ">=8.x.x" },
+  "devDependencies": {
+    "@types/jest": "^24.0.18",
+    "@types/node": "^12.7.3",
+    "jest": "^24.9.0",
+    "ts-jest": "^24.0.2",
+    "typescript": "^3.6.2"
+  }
+}
