@@ -21,4 +21,4 @@ export class Loader<T, U extends keyof T = keyof T> implements ILoader<T, U> {
 	}
 }
 
-export const register = <T extends {}, U extends keyof T = keyof T>(creator: CreatorFn<T[U]>) => new Loader<T, U>(creator);
+export const register = <T extends {}, U extends keyof T = keyof T>(creator: CreatorFn<T[U]> | ILoader<T, U>) =>  typeof creator === 'function' ? new Loader<T, U>(creator) : creator;

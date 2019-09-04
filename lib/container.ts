@@ -13,7 +13,7 @@ export class Container<T extends {}, U extends keyof T = keyof T> implements ICo
 
 	private scaffold: Scaffold<T, U>;
 
-	constructor(assemble: Record<U, CreatorFn<T[U]>>) {
+	constructor(assemble: Record<U, CreatorFn<T[U]> | ILoader<T, U>>) {
 		this.state = new Mutex();
 		this.scaffold = Object.keys(assemble).reduce((acc, k) => ({ ...acc, [k]: register<T, U>(assemble[k]) }), {}) as Scaffold<T, U>;
 	}
