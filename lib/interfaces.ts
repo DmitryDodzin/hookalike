@@ -1,10 +1,10 @@
 
 
-export interface IContainer<T extends {}, U extends keyof T = keyof T> {
+export interface IContainer<T> {
 
 	load(): Promise<void>;
 
-	use(name: U): T[U];
+	use<U extends keyof T>(name: U): T[U];
 }
 
 export interface IMutex<T> {
@@ -13,7 +13,7 @@ export interface IMutex<T> {
 	clear(): void;
 }
 
-export interface ILoader<T extends {}, U extends keyof T = keyof T> {
+export interface ILoader<T, U extends keyof T = keyof T> {
 	load(name: U, container: IContainer<T>): Promise<T[U]>;
 }
 

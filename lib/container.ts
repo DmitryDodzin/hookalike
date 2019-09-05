@@ -3,19 +3,19 @@ import { register, CreatorFn } from './loader';
 import { ILoader, IMutex, IContainer } from './interfaces';
 import { __global, Mutex, UnintializedMutexError } from './mutex';
 
-type Scaffold<T, U extends keyof T = keyof T> = Record<U, ILoader<T, U>>;
+type Scaffold<T, U extends keyof T> = Record<U, ILoader<T, U>>;
 
-const __loader_lock: { current: IContainer<any> | null } = { current: null };
+const __loader_lock: { current: IContainer<unknown> | null } = { current: null };
 
-export class Container<T extends {}, U extends keyof T = keyof T> implements IContainer<T, U> {
+export class Container<T> implements IContainer<T> {
 
 	private state: IMutex<T>;
 
-	private scaffold: Scaffold<T, U>;
+	private scaffold: Scaffold<T, keyof T>;
 
-	constructor(assemble: Record<U, CreatorFn<T[U]> | ILoader<T, U>>) {
+	constructor(assemble: Record<keyof T, CreatorFn<T[keyof T]> | ILoader<T, keyof T>>) {
 		this.state = new Mutex();
-		this.scaffold = Object.keys(assemble).reduce((acc, k) => ({ ...acc, [k]: register<T, U>(assemble[k]) }), {}) as Scaffold<T, U>;
+		this.scaffold = Object.keys(assemble).reduce((acc, k) => ({ ...acc, [k]: register(assemble[k]) }), {}) as Scaffold<T, keyof T>;
 	}
 
 	async load() {
@@ -26,8 +26,8 @@ export class Container<T extends {}, U extends keyof T = keyof T> implements ICo
 
 		const temporary: Partial<T> = {};
 			
-		for (const [key, loader] of Object.entries<ILoader<T, U>>(this.scaffold)) {
-			temporary[key] = await loader.load(key as U, this);
+		for (const [key, loader] of Object.entries<ILoader<T, keyof T>>(this.scaffold)) {
+			temporary[key] = await loader.load(key as keyof T, this);
 
 			this.state.current = temporary as T;
 		}
@@ -39,12 +39,12 @@ export class Container<T extends {}, U extends keyof T = keyof T> implements ICo
 		return this.state.current;
 	}
 
-	use(name: U): T[U] {
+	use<K extends keyof T>(name: K): T[K] {
 		return this.cradle[name];
 	}
 }
 
-export const use = <T extends {}, U extends keyof T = keyof T>(name: U): T[U] => {
+export const use = <T>(name: string): T => {
 	const { name: useKey, container } = __global.current;
 	try {
 		return container.use(name);
@@ -55,3 +55,8 @@ export const use = <T extends {}, U extends keyof T = keyof T>(name: U): T[U] =>
 		throw e;
 	}
 }
+
+export const typed = <T>() => ({
+	use: <U extends keyof T>(name: U): T[U] => use(name as string),
+	register: <U extends keyof T>(creator: CreatorFn<T[U]> | ILoader<T, U>, deps?: Omit<keyof T, U>[]): ILoader<T, U> => register<T, U>(creator, deps)
+})
