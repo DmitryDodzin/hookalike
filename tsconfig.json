@@ -16,6 +16,7 @@
   },
   "include": [
     "lib/**/*^(\\.spec).ts",
+    "example/**/*.ts",
     "index.ts"
   ]
 }

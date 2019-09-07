@@ -1,6 +1,9 @@
 import { IMutex, IContainer, GlobalMutex } from './interfaces';
 
-export class UnintializedMutexError extends Error {}
+export class UnintializedMutexError extends Error {
+	static code = 'hl-um';
+	code = UnintializedMutexError.code;
+}
 
 export class Mutex<T> implements IMutex<T> {
 	private state: T | undefined;

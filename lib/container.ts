@@ -40,7 +40,14 @@ export class Container<T> implements IContainer<T> {
 	}
 
 	use<K extends keyof T>(name: K): T[K] {
-		return this.cradle[name];
+		try {
+			return this.cradle[name];
+		} catch (e) {
+			if (e.code === UnintializedMutexError.code) {
+				throw new UnintializedMutexError(`Cannot load ${name} mutex not created, call container.init to create the context`);
+			}
+			throw e;
+		}
 	}
 }
 
@@ -49,7 +56,7 @@ export const use = <T>(name: string): T => {
 	try {
 		return container.use(name);
 	} catch (e) {
-		if (e instanceof UnintializedMutexError) {
+		if (e.code === UnintializedMutexError.code) {
 			throw new UnintializedMutexError(`Reorder deps, failed to get '${name}' in '${useKey}'`);
 		}
 		throw e;

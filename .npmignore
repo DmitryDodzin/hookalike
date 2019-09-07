@@ -69,3 +69,4 @@ lib/**/*.ts
 !lib/**/*.d.ts
 
 
+example/
