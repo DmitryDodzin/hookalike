@@ -13,7 +13,14 @@ export interface IMutex<T> {
 	clear(): void;
 }
 
+export type OwnedResouce<T> = [T, { release: () => void }];
+
+export interface ILocked<T> {
+	lock(): Promise<OwnedResouce<T>>;
+}
+
 export interface ILoader<T, U extends keyof T = keyof T> {
+	requirements: Omit<keyof T, U>[];
 	load(name: U, container: IContainer<T>): Promise<T[U]>;
 }
 
