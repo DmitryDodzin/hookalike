@@ -1,42 +1,53 @@
 
 import { register, CreatorFn } from './loader';
-import { ILoader, IMutex, IContainer } from './interfaces';
-import { __global, Mutex, UnintializedMutexError } from './mutex';
+import { ILoader, IMutex, ILocked, IContainer } from './interfaces';
+import { __global, Mutex, Locked, UnintializedMutexError } from './mutex';
 
 type Scaffold<T, U extends keyof T> = Record<U, ILoader<T, U>>;
 
-const __loader_lock: { current: IContainer<unknown> | null } = { current: null };
+const __loader_lock: ILocked<typeof __global> = new Locked(__global);
 
 export class Container<T> implements IContainer<T> {
 
-	private state: IMutex<T>;
+	private _state: IMutex<T>;
 
-	private scaffold: Scaffold<T, keyof T>;
+	private _scaffold: Scaffold<T, keyof T>;
 
-	constructor(assemble: Record<keyof T, CreatorFn<T[keyof T]> | ILoader<T, keyof T>>) {
-		this.state = new Mutex();
-		this.scaffold = Object.keys(assemble).reduce((acc, k) => ({ ...acc, [k]: register(assemble[k]) }), {}) as Scaffold<T, keyof T>;
+	constructor(assemble: Record<keyof T, CreatorFn<T[keyof T]> | ILoader<T, keyof T>>, requirements: { [P in keyof T]?: Omit<keyof T, P>[] } = {}) {
+		this._state = new Mutex();
+		this._scaffold = Object.keys(assemble).reduce((acc, k) => ({ ...acc, [k]: register(assemble[k], requirements[k]) }), {}) as Scaffold<T, keyof T>;
 	}
 
 	async load() {
-		if (__loader_lock.current)
-			throw new Error('Cannot load serveral containers in parallel');
+		const [, lock] = await __loader_lock.lock();
 
-		__loader_lock.current = this;
+		try {
+			const temporary: Partial<T> = {};
 
-		const temporary: Partial<T> = {};
-			
-		for (const [key, loader] of Object.entries<ILoader<T, keyof T>>(this.scaffold)) {
-			temporary[key] = await loader.load(key as keyof T, this);
+			const toLoad = Object.entries<ILoader<T, keyof T>>(this._scaffold)
+				.sort(([keyA, loaderA], [keyB, loaderB]) => { 
+					if(loaderA.requirements.includes(keyB)){
+						return 1;
+					}
 
-			this.state.current = temporary as T;
+					if(loaderB.requirements.includes(keyA)) {
+						return -1;
+					}
+					return 0; 
+				});
+				
+			for (const [key, loader] of toLoad) {
+				temporary[key] = await loader.load(key as keyof T, this);
+
+				this._state.current = temporary as T;
+			}
+		} finally {
+			lock.release();
 		}
-
-		__loader_lock.current = null;
 	}
 
 	get cradle(): T {
-		return this.state.current;
+		return this._state.current;
 	}
 
 	use<K extends keyof T>(name: K): T[K] {
@@ -57,7 +68,7 @@ export const use = <T>(name: string): T => {
 		return container.use(name);
 	} catch (e) {
 		if (e.code === UnintializedMutexError.code) {
-			throw new UnintializedMutexError(`Reorder deps, failed to get '${name}' in '${useKey}'`);
+			throw new UnintializedMutexError(`Reorder requirements, failed to get '${name}' in '${useKey}'`);
 		}
 		throw e;
 	}
@@ -65,5 +76,5 @@ export const use = <T>(name: string): T => {
 
 export const typed = <T>() => ({
 	use: <U extends keyof T>(name: U): T[U] => use(name as string),
-	register: <U extends keyof T>(creator: CreatorFn<T[U]> | ILoader<T, U>, deps?: Omit<keyof T, U>[]): ILoader<T, U> => register<T, U>(creator, deps)
+	register: <U extends keyof T>(creator: CreatorFn<T[U]> | ILoader<T, U>, requirements?: Omit<keyof T, U>[]): ILoader<T, U> => register<T, U>(creator, requirements)
 })

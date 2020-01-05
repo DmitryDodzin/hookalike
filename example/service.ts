@@ -14,7 +14,7 @@ export const createServiceA = (): IServiceA => {
 }
 
 
-export const createServiceB = (): IServiceB => {
+export const createServiceB = async (): Promise<IServiceB> => {
 	return {
 		bar: () => 'baz'
 	};
