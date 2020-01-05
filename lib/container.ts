@@ -7,6 +7,16 @@ type Scaffold<T, U extends keyof T> = Record<U, ILoader<T, U>>;
 
 const __loader_lock: ILocked<typeof __global> = new Locked(__global);
 
+const deepIncludes = <T, U extends keyof T>(scaffold: Scaffold<T, U>, source: U, target: U, checked: Set<U> = new Set()): boolean => {	
+	const newDeps = scaffold[target].requirements.filter(dep => !checked.has(dep as U)) as U[];
+
+	if(newDeps.length > 0) {
+		return newDeps.includes(source) || newDeps.some(dep => deepIncludes(scaffold, source, dep as U, new Set(Array.from(checked).concat(newDeps))));
+	}
+
+	return false;
+}
+
 export class Container<T> implements IContainer<T> {
 
 	private _state: IMutex<T>;
@@ -15,7 +25,7 @@ export class Container<T> implements IContainer<T> {
 
 	constructor(assemble: Record<keyof T, CreatorFn<T[keyof T]> | ILoader<T, keyof T>>, requirements: { [P in keyof T]?: Omit<keyof T, P>[] } = {}) {
 		this._state = new Mutex();
-		this._scaffold = Object.keys(assemble).reduce((acc, k) => ({ ...acc, [k]: register(assemble[k], requirements[k]) }), {}) as Scaffold<T, keyof T>;
+		this._scaffold = Object.keys(assemble).reduce((acc, k) => ({ ...acc, [k]: typeof assemble[k] === 'function' ? register(assemble[k], requirements[k]) : assemble[k] }), {}) as Scaffold<T, keyof T>;
 	}
 
 	async load() {
@@ -24,20 +34,20 @@ export class Container<T> implements IContainer<T> {
 		try {
 			const temporary: Partial<T> = {};
 
-			const toLoad = Object.entries<ILoader<T, keyof T>>(this._scaffold)
-				.sort(([keyA, loaderA], [keyB, loaderB]) => { 
-					if(loaderA.requirements.includes(keyB)){
-						return 1;
+			const toLoad = Object.keys(this._scaffold)
+				.sort((keyA, keyB) => {
+					if(deepIncludes(this._scaffold, keyA as keyof T, keyB as keyof T)){
+						return -1;
 					}
 
-					if(loaderB.requirements.includes(keyA)) {
-						return -1;
+					if(deepIncludes(this._scaffold, keyB as keyof T, keyA as keyof T)) {
+						return 1;
 					}
 					return 0; 
 				});
 				
-			for (const [key, loader] of toLoad) {
-				temporary[key] = await loader.load(key as keyof T, this);
+			for (const key of toLoad) {
+				temporary[key] = await this._scaffold[key].load(key as keyof T, this);
 
 				this._state.current = temporary as T;
 			}
