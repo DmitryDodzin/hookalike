@@ -36,7 +36,7 @@ test('deep', async () => {
 	const container: IContainer<Deps> = new Container<Deps>({
 		bar: register<'bar'>(() => ({ baz: use('foo').bar }), ['foo']),
 		baz: async () => ({ bal: use('bar').baz + '2' }),
-		foo: register<'foo'>(() => ({ bar: 'bar' }), []),
+		foo: register(register<'foo'>(() => ({ bar: 'bar' }), [])),
 	}, { baz: ['bar'] });
 
 	await container.load();
