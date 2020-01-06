@@ -68,6 +68,7 @@ jest.config.js
 .circleci
 
 # Source Files
-./lib/
+lib
 
-example/  
+# Example
+example
