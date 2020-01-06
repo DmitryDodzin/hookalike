@@ -64,9 +64,10 @@ typings/
 
 jest.config.js
 
+# Ci
+.circleci
+
 # Source Files
-lib/**/*.ts
-!lib/**/*.d.ts
+./lib/
 
-
-example/
+example/  
