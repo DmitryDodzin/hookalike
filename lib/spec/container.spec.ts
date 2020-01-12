@@ -134,3 +134,19 @@ test('use error not in ready', () => {
 
 	expect(() => container.use('foo')).toThrow('Cannot load foo mutex not created, call container.init to create the context');
 });
+
+test('use clean error', () => {
+	class TestError extends Error {}
+
+	type Deps = {
+		foo: string;
+	};
+
+	const container = new Container<Deps>({
+		foo: () => {
+			throw new TestError();
+		},
+	});
+
+	expect(container.load()).rejects.toEqual(new TestError());
+})
