@@ -112,7 +112,7 @@ test('multiple', async () => {
 	expect(container.use('baz')).toHaveProperty('bal', 'bar2');
 });
 
-test('use error not in ready', () => {
+test('use error out of context', () => {
 	type Deps = {
 		foo: string;
 	};
@@ -120,4 +120,17 @@ test('use error not in ready', () => {
 	const { use } = typed<Deps>();
 
 	expect(() => use('foo')).toThrow('Global Mutex uninitialized');
+});
+
+
+test('use error not in ready', () => {
+	type Deps = {
+		foo: string;
+	};
+
+	const container = new Container<Deps>({
+		foo: () => 'bar',
+	});
+
+	expect(() => container.use('foo')).toThrow('Cannot load foo mutex not created, call container.init to create the context');
 });

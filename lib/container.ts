@@ -72,24 +72,13 @@ export class Container<T> implements IContainer<T> {
 	}
 }
 
-const getGlobalContext = (): GlobalMutex => {
-	try {
-		return __global.current;
-	} catch (e) {
-		if (e.code === UnintializedMutexError.code) {
-			throw new UnintializedMutexError('Global Mutex uninitialized');
-		}
-		throw e;
-	}
-}
-
 export const use = <T>(name: string): T => {
-	const { name: useKey, container } = getGlobalContext();
 	try {
+		const { container } = __global.current;
 		return container.use(name);
 	} catch (e) {
 		if (e.code === UnintializedMutexError.code) {
-			throw new UnintializedMutexError(`Reorder requirements, failed to get '${name}' in '${useKey}'`);
+			throw new UnintializedMutexError('Global Mutex uninitialized');
 		}
 		throw e;
 	}
