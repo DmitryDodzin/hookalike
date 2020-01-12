@@ -1,6 +1,6 @@
 
 import { register, CreatorFn } from './loader';
-import { ILoader, IMutex, ILocked, IContainer } from './interfaces';
+import { ILoader, IMutex, ILocked, IContainer, GlobalMutex } from './interfaces';
 import { __global, Mutex, Locked, UnintializedMutexError } from './mutex';
 
 type Scaffold<T, U extends keyof T> = Record<U, ILoader<T, U>>;
@@ -72,8 +72,19 @@ export class Container<T> implements IContainer<T> {
 	}
 }
 
+const getGlobalContext = (): GlobalMutex => {
+	try {
+		return __global.current;
+	} catch (e) {
+		if (e.code === UnintializedMutexError.code) {
+			throw new UnintializedMutexError('Global Mutex uninitialized');
+		}
+		throw e;
+	}
+}
+
 export const use = <T>(name: string): T => {
-	const { name: useKey, container } = __global.current;
+	const { name: useKey, container } = getGlobalContext();
 	try {
 		return container.use(name);
 	} catch (e) {

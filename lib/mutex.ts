@@ -3,7 +3,12 @@ import { IMutex, ILocked, IContainer, GlobalMutex, OwnedResouce } from './interf
 
 export class UnintializedMutexError extends Error {
 	static code = 'hl-um';
-	code = UnintializedMutexError.code;
+	public code: string;
+
+	constructor(message: string) {
+		super(message);
+		this.code = UnintializedMutexError.code;
+	}
 }
 
 export class Mutex<T> implements IMutex<T> {
@@ -14,8 +19,9 @@ export class Mutex<T> implements IMutex<T> {
 	}
 
 	get current(): T {
-		if (typeof this.state === 'undefined') 
+		if (typeof this.state === 'undefined') {
 			throw new UnintializedMutexError('Mutex uninitialized');
+		}
 
 		return this.state;
 	}
