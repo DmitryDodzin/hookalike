@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { IMutex, ILocked, IContainer, GlobalMutex, OwnedResouce } from './interfaces';
+import type { IMutex, ILocked, IContainer, GlobalMutex, OwnedResouce } from './interfaces';
 
 export class UnintializedMutexError extends Error {
 	static code = 'hl-um';

@@ -1,6 +1,6 @@
 
 import { __global } from './mutex';
-import { ILoader } from './interfaces';
+import type { ILoader } from './interfaces';
 
 export type CreatorFn<T> = () => T | Promise<T>;
 

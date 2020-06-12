@@ -1,7 +1,7 @@
 
 import { register, CreatorFn } from './loader';
-import { ILoader, IMutex, ILocked, IContainer, GlobalMutex } from './interfaces';
 import { __global, Mutex, Locked, UnintializedMutexError } from './mutex';
+import type { ILoader, IMutex, ILocked, IContainer, GlobalMutex } from './interfaces';
 
 type Scaffold<T, U extends keyof T> = Record<U, ILoader<T, U>>;
 

@@ -1,7 +1,7 @@
 
 import { UnintializedMutexError } from '../mutex';
 import { Container, typed } from '../container';
-import { IContainer } from '../interfaces';
+import type { IContainer } from '../interfaces';
 
 test('basic', async () => {
 	type Deps = {
